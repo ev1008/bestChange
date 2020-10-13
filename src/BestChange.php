@@ -3,13 +3,11 @@
 namespace BestChange;
 
 use BestChange\Exception\BestChangeException;
-use DateTime;
-use ZipArchive;
 
 class BestChange
 {
     private $version = '';
-    /** @var DateTime */
+    /** @var \DateTime */
     private $lastUpdate;
 
     const PREFIX_TMPFILE = 'nbc';
@@ -21,7 +19,7 @@ class BestChange
 
     const TIMEOUT = 5;
 
-    /** @var ZipArchive */
+    /** @var \ZipArchive */
     private $zip;
     /** @var Currencies */
     private $currencies;
@@ -42,7 +40,7 @@ class BestChange
      */
     public function __construct($cachePath = '', $cacheTime = 3600)
     {
-        $this->zip = new ZipArchive();
+        $this->zip = new \ZipArchive();
         if ($cachePath) {
             $this->cacheTime = $cacheTime;
             $this->useCache = true;
@@ -214,20 +212,27 @@ class BestChange
         foreach ($arMonth as $ru => $en) {
             $date = preg_replace('/' . $ru . '/sui', $en, $date);
         }
-        return new DateTime($date);
+        return new \DateTime($date);
     }
 
     private function loadFile($url)
     {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_TIMEOUT, self::TIMEOUT);
-        curl_setopt($ch, CURLOPT_AUTOREFERER, true);
-        curl_setopt($ch, CURLOPT_HEADER, false);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        $data = curl_exec($ch);
-        curl_close($ch);
+        $curl = curl_init();
+
+        curl_setopt_array($curl, array(
+          CURLOPT_URL => "http://api.bestchange.ru/info.zip",
+          CURLOPT_RETURNTRANSFER => true,
+          CURLOPT_ENCODING => "",
+          CURLOPT_MAXREDIRS => 10,
+          CURLOPT_TIMEOUT => 0,
+          CURLOPT_FOLLOWLOCATION => true,
+          CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+          CURLOPT_CUSTOMREQUEST => "GET",
+        ));
+
+        $data = curl_exec($curl);
+
+        curl_close($curl);
         return $data;
     }
 }
